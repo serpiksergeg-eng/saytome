@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SayToMe!</title>
+    <link rel="preconnect" href="https://googleapis.com">
+    <link rel="preconnect" href="https://gstatic.com" crossorigin>
+    <link href="https://googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+    <script src="https://jsdelivr.net"></script>
+
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Inter', sans-serif;
+        }
+
+        body {
+            background-color: #06080c;
+            color: #e4e6eb;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            flex-direction: column;
+            padding: 20px 0;
+        }
+
+        .chat-container {
+            width: 100%;
+            max-width: 500px;
+            height: 85vh;
+            background: #0f121a;
+            border-radius: 28px; /* Сильное закругление краев */
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.7);
+            border: 1px solid #1a202c;
+        }
+
+        .chat-header {
+            padding: 24px;
+            background: #151a26;
+            border-bottom: 1px solid #1a202c;
+        }
+
+        .chat-header h1 {
+            font-size: 26px;
+            font-weight: 800;
+            letter-spacing: -1px;
+            color: #ffffff;
+        }
+
+        .chat-header h1 span {
+            color: #3861fb;
+        }
+
+        .chat-messages {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .message {
+            max-width: 75%;
+            padding: 14px 18px;
+            border-radius: 20px; /* Круглые сообщения */
+            font-size: 15px;
+            line-height: 1.4;
+            word-break: break-word;
+        }
+
+        .message.incoming {
+            background: #1a202c;
+            align-self: flex-start;
+            border-bottom-left-radius: 6px;
+        }
+
+        .message.outgoing {
+            background: #3861fb;
+            color: #fff;
+            align-self: flex-end;
+            border-bottom-right-radius: 6px;
+        }
+
+        .message img {
+            max-width: 100%;
+            border-radius: 14px; /* Круглые края у картинок */
+            margin-top: 8px;
+            display: block;
+        }
+
+        .message .username {
+            font-size: 12px;
+            font-weight: 600;
+            margin-bottom: 4px;
+            opacity: 0.5;
+        }
+
+        .chat-input-area {
+            padding: 20px;
+            background: #151a26;
+            border-top: 1px solid #1a202c;
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .chat-input {
+            flex: 1;
+            background: #0f121a;
+            border: 1px solid #1a202c;
+            padding: 16px 20px;
+            border-radius: 18px; /* Закругленный инпут */
+            color: #fff;
+            font-size: 15px;
+            outline: none;
+        }
+
+        .chat-input:focus {
+            border-color: #3861fb;
+        }
+
+        .file-label {
+            cursor: pointer;
+            background: #1a202c;
+            padding: 16px;
+            border-radius: 18px; /* Закругленная кнопка файла */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.15s;
+        }
+
+        .file-label:hover {
+            background: #232b3c;
+        }
+
+        .file-label input {
+            display: none;
+        }
+
+        .btn-send {
+            background: #3861fb;
+            color: #fff;
+            border: none;
+            padding: 16px 26px;
+            border-radius: 18px; /* Закругленная кнопка отправки */
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.15s;
+        }
+
+        .btn-send:hover {
+            background: #2a50e4;
+        }
+
+        /* Футер сайта с кнопкой Лицензия */
+        .site-footer {
+            margin-top: 15px;
+            text-align: center;
+        }
+
+        .btn-license {
+            background: transparent;
+            border: none;
+            color: #4e5d78;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            text-decoration: underline;
+            transition: color 0.2s;
+        }
+
+        .btn-license:hover {
+            color: #e4e6eb;
+        }
+    </style>
+</head>
+<body>
+
+<div class="chat-container">
+    <div class="chat-header">
+        <h1>SayToMe<span>!</span></h1>
+    </div>
+    
+    <div class="chat-messages" id="chatMessages"></div>
+    
+    <div class="chat-input-area">
+        <label class="file-label">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#e4e6eb" stroke-width="2"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"></path></svg>
+            <input type="file" id="fileInput" accept="image/*">
+        </label>
+        <input type="text" id="messageInput" class="chat-input" placeholder="Напиши мне...">
+        <button class="btn-send" id="sendBtn">ОТПРАВИТЬ</button>
+    </div>
+</div>
+
+<!-- Футер с кнопкой Лицензия -->
+<div class="site-footer">
+    <button class="btn-license" onclick="showPaschalka()">Лицензия</button>
+</div>
+
+<script>
+    const SUPABASE_URL = 'https://alhwuopaulyhcxrnjfjq.supabase.co'; 
+    const SUPABASE_ANON_KEY = 'sb_publishable_GBx5Ld34oZC4G1TEdvlE3w_taFZWYIk';
+    const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+
+    const currentUsername = "User_" + Math.floor(Math.random() * 1000);
+
+    const chatMessages = document.getElementById('chatMessages');
+    const messageInput = document.getElementById('messageInput');
+    const fileInput = document.getElementById('fileInput');
+    const sendBtn = document.getElementById('sendBtn');
+
+    // Функция для вывода вашей пасхалки
+    function showPaschalka() {
+        alert("Лицензия сайта SayToMe!\nКто это читает! Брысь со страницы!");
+    }
+
+    function renderMessage(msg) {
+        const msgDiv = document.createElement('div');
+        const isMe = msg.username === currentUsername;
+        msgDiv.className = `message ${isMe ? 'outgoing' : 'incoming'}`;
+
+        let content = `<div class="username">${msg.username}</div>`;
+        if (msg.text) content += `<div>${msg.text}</div>`;
+        if (msg.image_url) content += `<img src="${msg.image_url}" alt="image">`;
+
+        msgDiv.innerHTML = content;
+        chatMessages.appendChild(msgDiv);
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+
+    async function loadMessages() {
+        const { data, error } = await supabase
+            .from('messages')
+            .select('*')
+            .order('created_at', { ascending: true });
+
+        if (!error && data) {
+            chatMessages.innerHTML = '';
+            data.forEach(renderMessage);
+        }
+    }
+
+    async function sendMessage() {
+        const text = messageInput.value.trim();
+        const file = fileInput.files[0];
+        let imageUrl = null;
+
+        if (!text && !file) return;
+
+        if (file) {
+            const fileExt = file.name.split('.').pop();
+            const fileName = `${Math.random()}.${fileExt}`;
+            const { data, error } = await supabase.storage
+                .from('chat-images')
+                .upload(fileName, file);
+
+            if (!error) {
+                const { data: urlData } = supabase.storage.from('chat-images').getPublicUrl(fileName);
+                imageUrl = urlData.publicUrl;
+            }
+        }
+
+        await supabase.from('messages').insert([
+            { username: currentUsername, text: text, image_url: imageUrl }
+        ]);
+
+        messageInput.value = '';
+        fileInput.value = '';
+    }
+
+    sendBtn.addEventListener('click', sendMessage);
+    messageInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') sendMessage(); });
+
+    supabase
+        .channel('public:messages')
+        .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, payload => {
+            renderMessage(payload.new);
+        })
+        .subscribe();
+
+    loadMessages();
+</script>
+
+</body>
+</html>
